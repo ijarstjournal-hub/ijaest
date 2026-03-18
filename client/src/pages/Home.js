@@ -1,23 +1,60 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import PaperCard from '../components/PaperCard';
+
+// Count-up animation hook
+function useCountUp(target, duration = 1800, start = false) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!start) return;
+    let startTime = null;
+    const step = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      setCount(Math.floor(progress * target));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [target, duration, start]);
+  return count;
+}
 
 export default function Home() {
   const [latestPapers, setLatestPapers] = useState([]);
   const [mostViewed, setMostViewed] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [statsVisible, setStatsVisible] = useState(false);
+  const statsRef = useRef(null);
+
+  // Fetch papers and total citations
+  const [totalCitations, setTotalCitations] = useState(200);
 
   useEffect(() => {
     Promise.all([
       axios.get('/api/papers').catch(() => ({ data: [] })),
       axios.get('/api/papers/most-viewed').catch(() => ({ data: null })),
-    ]).then(([papersRes, mvRes]) => {
-      setLatestPapers((Array.isArray(papersRes.data) ? papersRes.data : []).slice(0, 3));
+      axios.get('/api/papers/stats').catch(() => ({ data: { citations: 200 } })),
+    ]).then(([papersRes, mvRes, statsRes]) => {
+      const papers = Array.isArray(papersRes.data) ? papersRes.data : [];
+      setLatestPapers(papers.slice(0, 3));
       setMostViewed(mvRes.data && mvRes.data._id ? mvRes.data : null);
+      setTotalCitations(statsRes.data?.citations || 200);
       setLoading(false);
     });
   }, []);
+
+  // Trigger count-up when stats section scrolls into view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setStatsVisible(true); },
+      { threshold: 0.3 }
+    );
+    if (statsRef.current) observer.observe(statsRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const citationCount = useCountUp(totalCitations, 1800, statsVisible);
 
   return (
     <>
@@ -51,6 +88,79 @@ export default function Home() {
                 <div style={{ fontSize: 28, fontWeight: 800, fontFamily: 'var(--font-display)', color: '#F5C400' }}>{s.n}</div>
                 <div style={{ fontSize: 12, color: '#888', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</div>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Indexing & Stats Section */}
+      <section ref={statsRef} style={{ background: '#fff', borderBottom: '1px solid #E0E0E0', padding: '48px 0' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: 36 }}>
+            <span className="section-badge">Research Visibility</span>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(22px,4vw,32px)', fontWeight: 700, color: '#0D0D0D', marginTop: 8 }}>
+              Indexing & Research Impact
+            </h2>
+          </div>
+
+          {/* Stats grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 40 }}>
+            {[
+              { icon: '🎓', value: 'Google Scholar', label: 'Indexed', highlight: true },
+              { icon: '📊', value: `${citationCount}+`, label: 'Total Citations', highlight: false },
+              { icon: '🔗', value: 'CrossRef', label: 'DOI Registered', highlight: false },
+              { icon: '📋', value: '2977-4832', label: 'ISSN', highlight: false },
+              { icon: '🌍', value: '24/7', label: 'WhatsApp Support', highlight: false },
+              { icon: '⚡', value: 'Fast', label: 'Publication', highlight: false },
+            ].map(stat => (
+              <div key={stat.label} style={{
+                background: stat.highlight ? '#0D0D0D' : '#F7F7F7',
+                border: `1px solid ${stat.highlight ? '#F5C400' : '#E0E0E0'}`,
+                borderRadius: 10,
+                padding: '20px 16px',
+                textAlign: 'center',
+                transition: 'all 0.22s',
+              }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
+              >
+                <div style={{ fontSize: 28, marginBottom: 8 }}>{stat.icon}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 800, color: stat.highlight ? '#F5C400' : '#0D0D0D', marginBottom: 4 }}>
+                  {stat.value}
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: stat.highlight ? '#888' : '#666' }}>
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Indexed database badges */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
+            {[
+              '🎓 Google Scholar',
+              '🔗 CrossRef / DOI',
+              '📋 ISSN / ROAD',
+              '📚 ResearchBib',
+              '🏛️ Zenodo',
+              '📊 SJIF',
+              '📖 OALib',
+              '🗄️ Internet Archive',
+            ].map(db => (
+              <span key={db} style={{
+                background: '#F7F7F7',
+                border: '1px solid #E0E0E0',
+                borderRadius: 20,
+                padding: '7px 16px',
+                fontSize: 13,
+                fontWeight: 600,
+                color: '#333',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}>
+                {db}
+              </span>
             ))}
           </div>
         </div>
