@@ -14,7 +14,9 @@ router.get('/', async (req, res) => {
   try {
     const query = { published: true };
     if (req.query.search) {
-      const re = new RegExp(req.query.search, 'i');
+      // Escape special regex chars to prevent ReDoS
+      const escaped = req.query.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = new RegExp(escaped, 'i');
       query.$or = [
         { title: re },
         { abstract: re },
@@ -24,13 +26,35 @@ router.get('/', async (req, res) => {
     }
 
     const papers = await Paper.find(query)
-      .select('-pdfFile -generatedPdf')
+      .select('-pdfFile.data -generatedPdf')
       .sort({ publicationDate: -1, createdAt: -1 });
 
-    res.json(papers);
+    const result = papers.map((p) => {
+      const obj = p.toObject();
+      obj.hasPdf = !!(p.pdfFile && p.pdfFile.filename);
+      delete obj.pdfFile;
+      return obj;
+    });
+
+    res.json(result);
   } catch (err) {
     console.error('GET /papers error:', err);
     res.status(500).json({ message: 'Error fetching papers.' });
+  }
+});
+
+// GET /api/papers/total-citations  — sum of all paper citations (public)
+router.get('/total-citations', async (req, res) => {
+  try {
+    const result = await Paper.aggregate([
+      { $match: { published: true } },
+      { $group: { _id: null, total: { $sum: '$citations' } } },
+    ]);
+    const total = result.length > 0 ? result[0].total : 0;
+    res.json({ total: 200 + total }); // 200 base + real citations
+  } catch (err) {
+    console.error('GET /total-citations error:', err);
+    res.status(500).json({ total: 200 });
   }
 });
 
@@ -38,11 +62,15 @@ router.get('/', async (req, res) => {
 router.get('/most-viewed', async (req, res) => {
   try {
     const paper = await Paper.findOne({ published: true })
-      .select('-pdfFile -generatedPdf')
+      .select('-pdfFile.data -generatedPdf')
       .sort({ views: -1 });
 
     if (!paper) return res.status(404).json({ message: 'No papers found.' });
-    res.json(paper);
+
+    const obj = paper.toObject();
+    obj.hasPdf = !!(paper.pdfFile && paper.pdfFile.filename);
+    delete obj.pdfFile;
+    res.json(obj);
   } catch (err) {
     console.error('GET /most-viewed error:', err);
     res.status(500).json({ message: 'Error fetching most viewed paper.' });
@@ -53,14 +81,45 @@ router.get('/most-viewed', async (req, res) => {
 // ADMIN ROUTES  (must come before /:id to avoid route conflict)
 // ─────────────────────────────────────────────────────────────────────────────
 
-// GET /api/papers/admin/all  — all papers including drafts (auth)
+// GET /api/papers/stats  — public stats (total citations, papers count)
+router.get('/stats', async (req, res) => {
+  try {
+    const result = await Paper.aggregate([
+      { $match: { published: true } },
+      { $group: {
+        _id: null,
+        totalCitations: { $sum: '$citations' },
+        totalPapers: { $sum: 1 },
+        totalDownloads: { $sum: '$downloads' },
+      }}
+    ]);
+    const stats = result[0] || { totalCitations: 0, totalPapers: 0, totalDownloads: 0 };
+    res.json({
+      citations: 200 + stats.totalCitations,   // 200 base + real citations
+      papers: stats.totalPapers,
+      downloads: stats.totalDownloads,
+    });
+  } catch (err) {
+    console.error('GET /stats error:', err);
+    res.status(500).json({ message: 'Error fetching stats.' });
+  }
+});
 router.get('/admin/all', auth, async (req, res) => {
   try {
+    // Load pdfFile but only the size/filename metadata — not the actual buffer
     const papers = await Paper.find({})
-      .select('-pdfFile -generatedPdf')
+      .select('-pdfFile.data -generatedPdf')
       .sort({ createdAt: -1 });
 
-    res.json(papers);
+    // Add hasPdf flag to each paper
+    const result = papers.map((p) => {
+      const obj = p.toObject();
+      obj.hasPdf = !!(p.pdfFile && p.pdfFile.filename);
+      delete obj.pdfFile;
+      return obj;
+    });
+
+    res.json(result);
   } catch (err) {
     console.error('GET /admin/all error:', err);
     res.status(500).json({ message: 'Error fetching papers.' });
@@ -207,6 +266,26 @@ router.put('/admin/:id', auth, async (req, res) => {
   }
 });
 
+// PATCH /api/papers/admin/:id/citations  — set citation count for a paper (auth)
+router.patch('/admin/:id/citations', auth, async (req, res) => {
+  try {
+    const { citations } = req.body;
+    if (citations === undefined || isNaN(Number(citations)) || Number(citations) < 0) {
+      return res.status(400).json({ message: 'Valid citations count required.' });
+    }
+    const paper = await Paper.findByIdAndUpdate(
+      req.params.id,
+      { citations: Number(citations) },
+      { new: true }
+    ).select('-pdfFile -generatedPdf');
+    if (!paper) return res.status(404).json({ message: 'Paper not found.' });
+    res.json({ message: 'Citations updated.', citations: paper.citations });
+  } catch (err) {
+    console.error('PATCH /admin/:id/citations error:', err);
+    res.status(500).json({ message: 'Error updating citations.' });
+  }
+});
+
 // DELETE /api/papers/admin/:id  — delete paper (auth)
 router.delete('/admin/:id', auth, async (req, res) => {
   try {
@@ -219,11 +298,19 @@ router.delete('/admin/:id', auth, async (req, res) => {
   }
 });
 
-// PATCH /api/papers/admin/:id/publish  — toggle publish, generate PDF on publish (auth)
+// On publish: generates branded PDF (cover + manuscript + header/footer stamps).
+// Blocks publishing if no manuscript PDF has been uploaded yet.
 router.patch('/admin/:id/publish', auth, async (req, res) => {
   try {
     const paper = await Paper.findById(req.params.id);
     if (!paper) return res.status(404).json({ message: 'Paper not found.' });
+
+    // Cannot publish without an uploaded manuscript PDF
+    if (!paper.published && (!paper.pdfFile || !paper.pdfFile.data)) {
+      return res.status(400).json({
+        message: 'Cannot publish: no PDF has been uploaded for this paper. Please edit the paper and upload the manuscript PDF first.',
+      });
+    }
 
     paper.published = !paper.published;
 
@@ -231,7 +318,7 @@ router.patch('/admin/:id/publish', auth, async (req, res) => {
       // Set publication date if not already set
       if (!paper.publicationDate) paper.publicationDate = new Date();
 
-      // Generate formatted journal PDF
+      // Generate branded PDF: cover page + full manuscript + header/footer on every page
       try {
         const pdfBuffer = await generatePaperPDF(paper);
         paper.generatedPdf = {
@@ -242,7 +329,7 @@ router.patch('/admin/:id/publish', auth, async (req, res) => {
         };
       } catch (pdfErr) {
         console.error('PDF generation error:', pdfErr);
-        // Don't block publish if PDF generation fails
+        // Don't block publish if PDF stamping fails — log it and serve raw manuscript as fallback
         paper.generatedPdf = null;
       }
     }
@@ -252,6 +339,7 @@ router.patch('/admin/:id/publish', auth, async (req, res) => {
     const result = paper.toObject();
     delete result.pdfFile;
     delete result.generatedPdf;
+    result.hasPdf = true;
 
     res.json({
       message: `Paper ${paper.published ? 'published' : 'unpublished'} successfully.`,
@@ -274,10 +362,20 @@ router.get('/:id', async (req, res) => {
       { _id: req.params.id, published: true },
       { $inc: { views: 1 } },
       { new: true }
-    ).select('-pdfFile -generatedPdf');
+    ).select('-pdfFile.data -generatedPdf.data');
 
     if (!paper) return res.status(404).json({ message: 'Paper not found.' });
-    res.json(paper);
+
+    const paperObj = paper.toObject();
+    // hasPdf: true if a branded PDF (or at minimum an uploaded PDF) exists
+    paperObj.hasPdf = !!(
+      (paper.generatedPdf && paper.generatedPdf.size) ||
+      (paper.pdfFile && paper.pdfFile.filename)
+    );
+    delete paperObj.pdfFile;
+    delete paperObj.generatedPdf;
+
+    res.json(paperObj);
   } catch (err) {
     if (err.name === 'CastError') {
       return res.status(404).json({ message: 'Paper not found.' });
@@ -287,32 +385,49 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// GET /api/papers/:id/pdf  — stream generated PDF (increments downloads)
+// GET /api/papers/:id/pdf  — serve the branded PDF (cover + manuscript + stamps)
+// Falls back to raw uploaded manuscript if branding generation failed.
 router.get('/:id/pdf', async (req, res) => {
   try {
     const paper = await Paper.findOne({ _id: req.params.id, published: true }).select(
-      'generatedPdf title volume issue doi downloads'
+      'generatedPdf pdfFile title volume issue doi downloads'
     );
 
     if (!paper) return res.status(404).json({ message: 'Paper not found.' });
 
-    if (!paper.generatedPdf || !paper.generatedPdf.data) {
+    // Prefer the branded generated PDF; fall back to raw upload if stamping failed
+    const pdfData = (paper.generatedPdf && paper.generatedPdf.data)
+      ? paper.generatedPdf.data
+      : (paper.pdfFile && paper.pdfFile.data)
+        ? paper.pdfFile.data
+        : null;
+
+    if (!pdfData) {
       return res.status(404).json({ message: 'PDF not available for this paper.' });
     }
 
-    // Increment downloads
+    // Increment downloads counter
     await Paper.findByIdAndUpdate(req.params.id, { $inc: { downloads: 1 } });
 
-    const filename = paper.generatedPdf.filename || `ijarst_${paper._id}.pdf`;
+    // Build a clean filename
+    const safeTitle = (paper.title || 'paper')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .slice(0, 60);
+    const filename = `ijarst_v${paper.volume}i${paper.issue}_${safeTitle}.pdf`;
+
+    // inline = browser PDF viewer; ?download=1 = force save
+    const disposition = req.query.download === '1' ? 'attachment' : 'inline';
 
     res.set({
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="${filename}"`,
-      'Content-Length': paper.generatedPdf.data.length,
+      'Content-Disposition': `${disposition}; filename="${filename}"`,
+      'Content-Length': pdfData.length,
       'Cache-Control': 'public, max-age=3600',
+      'X-Content-Type-Options': 'nosniff',
     });
 
-    res.send(paper.generatedPdf.data);
+    res.send(pdfData);
   } catch (err) {
     if (err.name === 'CastError') {
       return res.status(404).json({ message: 'Paper not found.' });
