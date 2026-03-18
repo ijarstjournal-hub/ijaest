@@ -177,7 +177,7 @@ export default function Home() {
               <Link to="/aims-scope" className="btn btn-outline">Read Full Scope</Link>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              {[['','Engineering & Technology'],['','Applied Sciences'],['','Computer Science & AI'],['','Environmental Sciences'],['','Electrical & Electronics'],['🏗️','Civil Engineering'],['🧪','Materials Science'],['📡','Communications & IoT']].map(([icon, label]) => (
+              {[['','Engineering & Technology'],['','Applied Sciences'],['','Computer Science & AI'],['','Environmental Sciences'],['','Electrical & Electronics'],['','Civil Engineering'],['','Materials Science'],['','Communications & IoT']].map(([icon, label]) => (
                 <div key={label} style={{ background: '#fff', border: '1px solid #E0E0E0', borderRadius: 8, padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'center' }}>
                   <span style={{ fontSize: 20 }}>{icon}</span>
                   <span style={{ fontSize: 13, fontWeight: 600, color: '#333' }}>{label}</span>
