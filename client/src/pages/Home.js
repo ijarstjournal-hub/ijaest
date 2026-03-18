@@ -107,7 +107,7 @@ export default function Home() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 40 }}>
             {[
               { icon: '🎓', value: 'Google Scholar', label: 'Indexed', highlight: true },
-              { icon: '📊', value: `${citationCount}+`, label: 'Total Citations', highlight: false },
+              { icon: '', value: `${citationCount}+`, label: 'Total Citations', highlight: false },
               { icon: '🔗', value: 'CrossRef', label: 'DOI Registered', highlight: false },
               { icon: '📋', value: '2977-4832', label: 'ISSN', highlight: false },
               { icon: '🌍', value: '24/7', label: 'WhatsApp Support', highlight: false },
