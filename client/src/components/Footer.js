@@ -85,7 +85,7 @@ export default function Footer() {
             International Journal of Applied Research<br />in Science & Technology
           </p>
           <p style={{ fontSize: 12, color: '#555', marginBottom: 4 }}>🇬🇧 United Kingdom</p>
-          <p style={{ fontSize: 12, color: '#555', marginBottom: 4 }}>ISSN: (pending registration)</p>
+          <p style={{ fontSize: 12, color: '#555', marginBottom: 4 }}>ISSN: 2977-4832</p>
           <p style={{ fontSize: 12, color: '#555', marginBottom: 16 }}>Open Access · Peer-Reviewed</p>
           <a
             href="/submit"
@@ -180,7 +180,7 @@ export default function Footer() {
       <div style={s.bottom}>
         <div style={s.bottomInner}>
           <span>© {year} IJARST – International Journal of Applied Research in Science & Technology. All rights reserved.</span>
-          <span style={{ color: '#444' }}>ISSN: Pending · Open Access · UK 🇬🇧</span>
+          <span style={{ color: '#444' }}>ISSN: 2977-4832 · Open Access · UK 🇬🇧</span>
         </div>
       </div>
     </footer>
