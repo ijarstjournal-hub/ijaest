@@ -52,7 +52,7 @@ export default function SinglePaper() {
       <MetaTag name="citation_title" content={paper.title} />
       {(paper.authors||[]).map((a,i) => <MetaTag key={i} name="citation_author" content={a.name} />)}
       <MetaTag name="citation_journal_title" content="International Journal of Applied Research in Science & Technology" />
-      <MetaTag name="citation_issn" content="XXXX-XXXX" />
+      <MetaTag name="citation_issn" content="2977-4832" />
       <MetaTag name="citation_volume" content={String(paper.volume)} />
       <MetaTag name="citation_issue" content={String(paper.issue)} />
       <MetaTag name="citation_publication_date" content={paper.publicationDate ? new Date(paper.publicationDate).toISOString().slice(0,10) : ''} />
@@ -71,7 +71,7 @@ export default function SinglePaper() {
           {/* Journal header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8, marginBottom: 20, padding: '14px 20px', background: '#F7F7F7', borderRadius: 6 }}>
             <span style={{ fontSize: 13, fontWeight: 600, color: '#555' }}>Volume {paper.volume}, Issue {paper.issue}</span>
-            <span style={{ fontSize: 13, color: '#888' }}>ISSN: XXXX-XXXX | Open Access</span>
+            <span style={{ fontSize: 13, color: '#888' }}>ISSN: 2977-4832 | Open Access</span>
           </div>
 
           {/* Green rule */}
@@ -123,7 +123,7 @@ export default function SinglePaper() {
                 ['Issue', `${paper.issue}`],
                 ['Published', pubDate],
                 ['DOI', paper.doi || 'Pending'],
-                ['ISSN', 'XXXX-XXXX'],
+                ['ISSN', '2977-4832'],
                 ['Pages', `${paper.pageStart || 1}–${paper.pageEnd || 1}`],
                 ['Access', 'Open Access'],
               ].map(([label, value]) => (
@@ -143,9 +143,16 @@ export default function SinglePaper() {
 
           {/* Action buttons */}
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 32 }}>
-            <a href={`/api/papers/${id}/pdf`} target="_blank" rel="noreferrer" className="btn btn-primary">
-              ⬇ Download PDF
-            </a>
+            {paper.hasPdf !== false && (
+              <>
+                <a href={`/api/papers/${id}/pdf`} target="_blank" rel="noreferrer" className="btn btn-primary">
+                  👁 View PDF
+                </a>
+                <a href={`/api/papers/${id}/pdf?download=1`} className="btn btn-outline">
+                  ⬇ Download PDF
+                </a>
+              </>
+            )}
             <button className="btn btn-outline" onClick={() => copyText(apaStr, 'apa')}>
               {copied === 'apa' ? '✓ Copied!' : '📋 Copy APA Citation'}
             </button>
