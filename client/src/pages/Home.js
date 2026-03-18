@@ -13,8 +13,8 @@ export default function Home() {
       axios.get('/api/papers').catch(() => ({ data: [] })),
       axios.get('/api/papers/most-viewed').catch(() => ({ data: null })),
     ]).then(([papersRes, mvRes]) => {
-      setLatestPapers((papersRes.data || []).slice(0, 3));
-      setMostViewed(mvRes.data || null);
+      setLatestPapers((Array.isArray(papersRes.data) ? papersRes.data : []).slice(0, 3));
+      setMostViewed(mvRes.data && mvRes.data._id ? mvRes.data : null);
       setLoading(false);
     });
   }, []);
