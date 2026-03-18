@@ -108,10 +108,10 @@ export default function Home() {
             {[
               { icon: '🎓', value: 'Google Scholar', label: 'Indexed', highlight: true },
               { icon: '', value: `${citationCount}+`, label: 'Total Citations', highlight: false },
-              { icon: '🔗', value: 'CrossRef', label: 'DOI Registered', highlight: false },
-              { icon: '📋', value: '2977-4832', label: 'ISSN', highlight: false },
-              { icon: '🌍', value: '24/7', label: 'WhatsApp Support', highlight: false },
-              { icon: '⚡', value: 'Fast', label: 'Publication', highlight: false },
+              { icon: '', value: 'CrossRef', label: 'DOI Registered', highlight: false },
+              { icon: '', value: '2977-4832', label: 'ISSN', highlight: false },
+              { icon: '', value: '24/7', label: 'WhatsApp Support', highlight: false },
+              { icon: '', value: 'Fast', label: 'Publication', highlight: false },
             ].map(stat => (
               <div key={stat.label} style={{
                 background: stat.highlight ? '#0D0D0D' : '#F7F7F7',
@@ -138,14 +138,14 @@ export default function Home() {
           {/* Indexed database badges */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
             {[
-              '🎓 Google Scholar',
-              '🔗 CrossRef / DOI',
-              '📋 ISSN / ROAD',
-              '📚 ResearchBib',
-              '🏛️ Zenodo',
-              '📊 SJIF',
-              '📖 OALib',
-              '🗄️ Internet Archive',
+              ' Google Scholar',
+              ' CrossRef / DOI',
+              ' ISSN / ROAD',
+              ' ResearchBib',
+              ' Zenodo',
+              ' SJIF',
+              ' OALib',
+              ' Internet Archive',
             ].map(db => (
               <span key={db} style={{
                 background: '#F7F7F7',
@@ -177,7 +177,7 @@ export default function Home() {
               <Link to="/aims-scope" className="btn btn-outline">Read Full Scope</Link>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              {[['⚙️','Engineering & Technology'],['🔬','Applied Sciences'],['💻','Computer Science & AI'],['🌱','Environmental Sciences'],['⚡','Electrical & Electronics'],['🏗️','Civil Engineering'],['🧪','Materials Science'],['📡','Communications & IoT']].map(([icon, label]) => (
+              {[['','Engineering & Technology'],['','Applied Sciences'],['','Computer Science & AI'],['','Environmental Sciences'],['','Electrical & Electronics'],['🏗️','Civil Engineering'],['🧪','Materials Science'],['📡','Communications & IoT']].map(([icon, label]) => (
                 <div key={label} style={{ background: '#fff', border: '1px solid #E0E0E0', borderRadius: 8, padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'center' }}>
                   <span style={{ fontSize: 20 }}>{icon}</span>
                   <span style={{ fontSize: 13, fontWeight: 600, color: '#333' }}>{label}</span>
