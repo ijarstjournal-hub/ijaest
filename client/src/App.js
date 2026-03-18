@@ -22,7 +22,6 @@ import Contact from './pages/Contact';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 
-// Layout wrapper for public pages (with Navbar + Footer)
 function PublicLayout({ children }) {
   return (
     <>
@@ -38,9 +37,9 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public pages */}
           <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
           <Route path="/issues" element={<PublicLayout><Issues /></PublicLayout>} />
+          <Route path="/papers" element={<PublicLayout><Issues /></PublicLayout>} />
           <Route path="/papers/:id" element={<PublicLayout><SinglePaper /></PublicLayout>} />
           <Route path="/submit" element={<PublicLayout><Submit /></PublicLayout>} />
           <Route path="/fees" element={<PublicLayout><Fees /></PublicLayout>} />
@@ -52,31 +51,17 @@ export default function App() {
           <Route path="/plagiarism-policy" element={<PublicLayout><PlagiarismPolicy /></PublicLayout>} />
           <Route path="/authors-guide" element={<PublicLayout><AuthorsGuide /></PublicLayout>} />
           <Route path="/contact" element={<PublicLayout><Contact /></PublicLayout>} />
-
-          {/* Admin – no public layout */}
           <Route path="/x7k-admin/login" element={<AdminLogin />} />
-          <Route
-            path="/x7k-admin/dashboard"
-            element={
-              <ProtectedRoute>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* 404 fallback */}
-          <Route
-            path="*"
-            element={
-              <PublicLayout>
-                <div className="container" style={{ padding: '100px 24px', textAlign: 'center' }}>
-                  <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 72, color: 'var(--green)', marginBottom: 16 }}>404</h1>
-                  <p style={{ fontSize: 20, color: 'var(--gray-700)', marginBottom: 32 }}>Page not found.</p>
-                  <a href="/" className="btn btn-primary">Return Home</a>
-                </div>
-              </PublicLayout>
-            }
-          />
+          <Route path="/x7k-admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+          <Route path="*" element={
+            <PublicLayout>
+              <div className="container" style={{ padding: '100px 24px', textAlign: 'center' }}>
+                <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 72, color: 'var(--green)', marginBottom: 16 }}>404</h1>
+                <p style={{ fontSize: 20, color: 'var(--gray-700)', marginBottom: 32 }}>Page not found.</p>
+                <a href="/" className="btn btn-primary">Return Home</a>
+              </div>
+            </PublicLayout>
+          } />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
