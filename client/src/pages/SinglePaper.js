@@ -129,7 +129,7 @@ export default function SinglePaper() {
               ].map(([label, value]) => (
                 <div key={label}>
                   <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#888', marginBottom: 3 }}>{label}</div>
-                  <div style={{ fontSize: 14, color: '#333', fontWeight: 500, fontFamily: label === 'DOI' ? 'monospace' : 'inherit', fontSize: label === 'DOI' ? 12 : 14 }}>{value}</div>
+                  <div style={{ fontSize: label === 'DOI' ? 12 : 14, color: '#333', fontWeight: 500, fontFamily: label === 'DOI' ? 'monospace' : 'inherit' }}>{value}</div>
                 </div>
               ))}
             </div>
