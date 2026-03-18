@@ -36,13 +36,14 @@ const paperSchema = new mongoose.Schema(
     authors: { type: [authorSchema], default: [] },
     keywords: { type: [String], default: [] },
     pdfFile: { type: pdfFileSchema, default: null },
-    doi: { type: String, sparse: true, trim: true },
+    doi: { type: String, unique: true, sparse: true, trim: true },
     volume: { type: Number, required: [true, 'Volume is required'], min: 1 },
     issue: { type: Number, required: [true, 'Issue is required'], min: 1 },
     publicationDate: { type: Date, default: null },
     published: { type: Boolean, default: false },
     views: { type: Number, default: 0, min: 0 },
     downloads: { type: Number, default: 0, min: 0 },
+    citations: { type: Number, default: 0, min: 0 },
     generatedPdf: { type: generatedPdfSchema, default: null },
     pageStart: { type: Number, default: 1 },
     pageEnd: { type: Number, default: 1 },
@@ -64,6 +65,6 @@ paperSchema.pre('save', function (next) {
 // Index for fast lookups
 paperSchema.index({ published: 1, createdAt: -1 });
 paperSchema.index({ volume: 1, issue: 1 });
-paperSchema.index({ doi: 1 });
+paperSchema.index({ doi: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('Paper', paperSchema);
