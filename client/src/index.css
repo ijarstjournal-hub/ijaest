@@ -69,7 +69,7 @@ input, textarea, select {
 .marquee-track {
   display: flex;
   white-space: nowrap;
-  animation: marquee 28s linear infinite;
+  animation: marquee 55s linear infinite;
 }
 
 .marquee-track:hover { animation-play-state: paused; }
