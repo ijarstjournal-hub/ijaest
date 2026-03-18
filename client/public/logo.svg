@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="#0D0D0D"/>
+
+  <!-- Outer gold ring -->
+  <circle cx="256" cy="256" r="230" fill="none" stroke="#F5C400" stroke-width="6"/>
+
+  <!-- Inner green ring -->
+  <circle cx="256" cy="256" r="210" fill="none" stroke="#1B5E20" stroke-width="3"/>
+
+  <!-- Open book base -->
+  <g transform="translate(256, 240)">
+    <!-- Left page -->
+    <path d="M-100,40 L-100,-60 Q-100,-75 -85,-78 L-10,-85 L-10,55 Q-50,48 -85,52 Q-100,53 -100,40 Z" fill="#1B5E20"/>
+    <!-- Right page -->
+    <path d="M100,40 L100,-60 Q100,-75 85,-78 L10,-85 L10,55 Q50,48 85,52 Q100,53 100,40 Z" fill="#1B5E20"/>
+    <!-- Book spine -->
+    <rect x="-10" y="-85" width="20" height="140" fill="#F5C400" rx="2"/>
+    <!-- Left page lines -->
+    <line x1="-85" y1="-45" x2="-20" y2="-50" stroke="#F5C400" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+    <line x1="-85" y1="-25" x2="-20" y2="-30" stroke="#F5C400" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+    <line x1="-85" y1="-5" x2="-20" y2="-10" stroke="#F5C400" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+    <line x1="-85" y1="15" x2="-20" y2="10" stroke="#F5C400" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+    <!-- Right page lines -->
+    <line x1="85" y1="-45" x2="20" y2="-50" stroke="#F5C400" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+    <line x1="85" y1="-25" x2="20" y2="-30" stroke="#F5C400" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+    <line x1="85" y1="-5" x2="20" y2="-10" stroke="#F5C400" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+    <line x1="85" y1="15" x2="20" y2="10" stroke="#F5C400" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+  </g>
+
+  <!-- Atom orbits around book -->
+  <!-- Orbit 1 -->
+  <ellipse cx="256" cy="200" rx="145" ry="55" fill="none" stroke="#F5C400" stroke-width="2" opacity="0.5" transform="rotate(0, 256, 200)"/>
+  <!-- Orbit 2 -->
+  <ellipse cx="256" cy="200" rx="145" ry="55" fill="none" stroke="#F5C400" stroke-width="2" opacity="0.5" transform="rotate(60, 256, 200)"/>
+  <!-- Orbit 3 -->
+  <ellipse cx="256" cy="200" rx="145" ry="55" fill="none" stroke="#F5C400" stroke-width="2" opacity="0.5" transform="rotate(120, 256, 200)"/>
+
+  <!-- Atom nucleus dot -->
+  <circle cx="256" cy="200" r="8" fill="#F5C400"/>
+
+  <!-- Electron dots on orbits -->
+  <circle cx="401" cy="200" r="6" fill="#F5C400"/>
+  <circle cx="182" cy="148" r="6" fill="#F5C400"/>
+  <circle cx="182" cy="252" r="6" fill="#F5C400"/>
+
+  <!-- IJARST text -->
+  <text x="256" y="395" text-anchor="middle" font-family="Georgia, serif" font-size="52" font-weight="bold" fill="#F5C400" letter-spacing="4">IJARST</text>
+
+  <!-- Tagline -->
+  <text x="256" y="425" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#888888" letter-spacing="1">OPEN ACCESS · UK</text>
+
+  <!-- Bottom gold line -->
+  <rect x="156" y="435" width="200" height="3" fill="#1B5E20" rx="2"/>
+</svg>
